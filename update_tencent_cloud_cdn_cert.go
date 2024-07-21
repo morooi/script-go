@@ -106,11 +106,3 @@ func main() {
 		fmt.Printf("CDN domain %s updated successfully\n", domain)
 	}
 }
-
-// 编译命令：GOOS=linux GOARCH=amd64 go build -o update_cert
-
-// acme.sh 命令
-// acme.sh --install-cert -d your.domain.com \
-// --key-file /path/to/key.key \
-// --fullchain-file /path/to/fullchain.cer \
-// --reloadcmd "TENCENTCLOUD_SECRET_ID=YOUR_SECRET_ID TENCENTCLOUD_SECRET_KEY=YOUR_SECRET_KEY CERT_PATH=/path/to/fullchain.cer KEY_PATH=/path/to/key.key DOMAINS='domain1.com,domain2.com,domain3.com' /path/to/update_cert"

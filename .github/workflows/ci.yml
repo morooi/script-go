@@ -26,7 +26,7 @@ jobs:
       - name: Create Tag
         id: tag
         run: |
-          TAG_NAME=$(date +'%Y%m%d%H%M%S')
+          TAG_NAME=$(TZ=Asia/Shanghai date +'%Y%m%d%H%M%S')
           echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
           git tag $TAG_NAME
           git push origin $TAG_NAME

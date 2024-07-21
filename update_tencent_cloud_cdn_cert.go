@@ -1,4 +1,4 @@
-package script_go
+package main
 
 import (
 	"fmt"

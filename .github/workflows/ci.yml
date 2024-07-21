@@ -23,12 +23,21 @@ jobs:
           chmod +x ./build.sh
           ./build.sh
 
+      - name: Create Tag
+        id: tag
+        run: |
+          TAG_NAME=$(date +'%Y%m%d%H%M%S')
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
+
       - name: Create Release and Upload Assets
         id: create_release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ env.TAG_NAME }}
           files: |
-            refresh_tencent_cloud_cdn
-            update_tencent_cloud_cdn_cert
+            update_cert
+            refresh_cdn

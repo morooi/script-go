@@ -67,7 +67,6 @@ func calculateRatios(df dataframe.DataFrame, numFiles int, scenarioType string) 
 		humanP90Time := humanAuditData.Col("audit_seconds").Quantile(0.90)
 		humanP95Time := humanAuditData.Col("audit_seconds").Quantile(0.95)
 
-		humanData.Set("总数", fmt.Sprintf("%.2f 万", float64(total)/10000/float64(numFiles)))
 		humanData.Set("人审量", fmt.Sprintf("%.2f 万", float64(humanAuditData.Nrow())/10000/float64(numFiles)))
 		humanData.Set("人审驳回量", fmt.Sprintf("%.0f", float64(humanRejectData.Nrow())/float64(numFiles)))
 		humanData.Set("人审通过率", fmt.Sprintf("%.2f%%", humanVerifiedRatio*100))

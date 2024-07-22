@@ -36,3 +36,18 @@ GOOS=linux GOARCH=amd64 go build -o refresh_cdn refresh_tencent_cloud_cdn.go
 TENCENTCLOUD_SECRET_ID=YOUR_SECRET_ID TENCENTCLOUD_SECRET_KEY=YOUR_SECRET_KEY CDN_REFRESH_PATH='https://example.com/path/' /path/to/refresh_cdn
 ```
 
+### 计算审核数据
+
+脚本：[audit_time_analyze.go](audit_time_analyze.go)
+
+编译命令：
+
+```shell
+go build -o audit_time_analyze audit_time_analyze.go
+```
+
+使用：
+
+```shell
+/path/to/audit_time_analyze <file1> <file2> ... <fileN>
+```

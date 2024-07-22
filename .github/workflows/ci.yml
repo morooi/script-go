@@ -41,3 +41,4 @@ jobs:
           files: |
             update_cert
             refresh_cdn
+            audit_time_analyze

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-gota/gota/dataframe"
-	"github.com/go-gota/gota/series"
 	"github.com/iancoleman/orderedmap"
 	"log"
 	"os"
@@ -16,6 +15,7 @@ var result = orderedmap.New()
 var rejectActions = map[string]bool{
 	"OFF_SHELF":           true,
 	"OFF_SHELF_INVISIBLE": true,
+	"REJECTED":            true,
 }
 
 func filterByRejectActions(df dataframe.DataFrame, colName string) dataframe.DataFrame {
@@ -32,20 +32,15 @@ func filterByRejectActions(df dataframe.DataFrame, colName string) dataframe.Dat
 	return df.Subset(filteredRows)
 }
 
-func calculateRatios(df dataframe.DataFrame, numFiles int, scenarioType string) {
-	var filteredData dataframe.DataFrame
-	if scenarioType == "闪拍/快捷开单" {
-		filteredData = df.Filter(dataframe.F{Colname: "scenario_type", Comparator: "==", Comparando: scenarioType})
-	} else {
-		filteredData = df.Filter(dataframe.F{Colname: "scenario_type", Comparator: "==", Comparando: "普通"}).Filter(dataframe.F{Colname: "source", Comparator: "==", Comparando: scenarioType})
-	}
+func calculateRatios(df dataframe.DataFrame, numFiles int, source string) {
+	var filteredData = df.Filter(dataframe.F{Colname: "source", Comparator: "==", Comparando: source})
 
 	total := filteredData.Nrow()
 	if total == 0 {
 		return
 	}
 
-	machineAuditData := filteredData.Filter(dataframe.F{Colname: "audit_type", Comparator: "==", Comparando: "机审"})
+	machineAuditData := filteredData.Filter(dataframe.F{Colname: "audit_source", Comparator: "==", Comparando: "机审"})
 	machineAuditRatio := float64(machineAuditData.Nrow()) / float64(total)
 	machineRejectData := filterByRejectActions(machineAuditData, "action")
 	machineRejectRatio := float64(machineRejectData.Nrow()) / float64(machineAuditData.Nrow())
@@ -57,7 +52,7 @@ func calculateRatios(df dataframe.DataFrame, numFiles int, scenarioType string) 
 	machineP90Time := machineAuditData.Col("audit_seconds").Quantile(0.90)
 	machineP95Time := machineAuditData.Col("audit_seconds").Quantile(0.95)
 
-	humanAuditData := filteredData.Filter(dataframe.F{Colname: "audit_type", Comparator: "==", Comparando: "人审"})
+	humanAuditData := filteredData.Filter(dataframe.F{Colname: "audit_source", Comparator: "==", Comparando: "人审"})
 	humanData := orderedmap.New()
 	if humanAuditData.Nrow() > 0 {
 		humanRejectData := filterByRejectActions(humanAuditData, "action")
@@ -97,7 +92,7 @@ func calculateRatios(df dataframe.DataFrame, numFiles int, scenarioType string) 
 	scenarioResult.Set("机审+人审平均耗时", fmt.Sprintf("%.2f min", meanTime/60))
 	scenarioResult.Set("机审+人审P90耗时", fmt.Sprintf("%.2f min", p90Time/60))
 	scenarioResult.Set("机审+人审P95耗时", fmt.Sprintf("%.2f min", p95Time/60))
-	result.Set(scenarioType, scenarioResult)
+	result.Set(source, scenarioResult)
 }
 
 func main() {
@@ -115,9 +110,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		df := dataframe.ReadCSV(f, dataframe.WithTypes(map[string]series.Type{
-			"is_channel": series.String,
-		}))
+		df := dataframe.ReadCSV(f, dataframe.WithLazyQuotes(true))
 		allDataFrames = append(allDataFrames, df)
 
 		// 立即关闭文件以避免资源泄漏
@@ -143,7 +136,7 @@ func main() {
 	calculateRatios(mergedDataFrame, numFiles, "普通")
 
 	total := mergedDataFrame.Nrow()
-	machineAuditData := mergedDataFrame.Filter(dataframe.F{Colname: "audit_type", Comparator: "==", Comparando: "机审"})
+	machineAuditData := mergedDataFrame.Filter(dataframe.F{Colname: "audit_source", Comparator: "==", Comparando: "机审"})
 	machineAuditRatio := float64(machineAuditData.Nrow()) / float64(total)
 
 	allResult := orderedmap.New()
